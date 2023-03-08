@@ -19,3 +19,9 @@ class TextAdmin(admin.ModelAdmin):
 class ButtonAdmin(admin.ModelAdmin):
     list_display = ('from_button_id', 'button', 'to_button_id')
     form = forms.ButtonForm
+
+
+@admin.register(models.PlotModel)
+class PlotAdmin(admin.ModelAdmin):
+    list_display = ['link']
+    form = forms.PlotForm

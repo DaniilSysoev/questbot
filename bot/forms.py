@@ -32,3 +32,11 @@ class ButtonForm(forms.ModelForm):
             'button': forms.TextInput,
             'to_button_id': forms.TextInput
         }
+
+class PlotForm(forms.ModelForm):
+    class Meta:
+        model = models.PlotModel
+        fields = '__all__'
+        widgets = {
+            'link': forms.TextInput
+        }

@@ -2,6 +2,7 @@ from django.db import models
 
 
 class UserModel(models.Model):
+    root = models.BooleanField(default=False)
     foreign_id = models.CharField(max_length=15)
     stage = models.SmallIntegerField(default=0)
     last_button_id = models.CharField(max_length=50, default='приветствие')
@@ -34,3 +35,10 @@ class ButtonModel(models.Model):
     class Meta:
         verbose_name = 'Кнопка'
         verbose_name_plural = 'Кнопки'
+
+class PlotModel(models.Model):
+    link = models.CharField(max_length=255)
+
+    class Meta:
+        verbose_name = 'Сюжет'
+        verbose_name_plural = 'Сюжет'

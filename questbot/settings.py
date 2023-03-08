@@ -16,7 +16,9 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = ["https://*.eu.ngrok.io"]
 
 
 # Application definition
@@ -115,3 +117,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+
+AUTH_ADMIN_TOKEN = os.getenv('AUTH_ADMIN_TOKEN')
