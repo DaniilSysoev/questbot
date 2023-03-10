@@ -9,7 +9,7 @@ import httplib2
 
 
 bot = tb.TeleBot(settings.BOT_TOKEN)
-# https://api.telegram.org/bot5813570276:AAHVVgjcZZzmYr0Vrb-X9DXq-WHsrsXqLdo/setWebhook?url=https://0de0-83-242-179-142.eu.ngrok.io/bot/
+# https://api.telegram.org/bot5813570276:AAHVVgjcZZzmYr0Vrb-X9DXq-WHsrsXqLdo/setWebhook?url=https://3288-95-64-192-254.eu.ngrok.io/bot/
 
 def get_service_sacc():
     creds_json = os.path.dirname(__file__) + '/movement-quest-bot-c444b617c5db.json'
@@ -33,6 +33,15 @@ def index(request):
     return HttpResponse('<h1>Ты подключился!</h1>')
 
 
+def create_markup_text(message):
+    markup = tb.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    last_button = models.UserModel.objects.get(foreign_id=message.from_user.id).last_button_id
+    btn = [tb.types.KeyboardButton(i.button) for i in models.ButtonModel.objects.filter(from_button_id=last_button)]
+    markup.add(*btn)
+    text = models.TextModel.objects.get(button_id=last_button).text
+    return text, markup
+
+
 @bot.message_handler(commands=['start'])
 def start(message: tb.types.Message):
     p, _ = models.UserModel.objects.get_or_create(
@@ -43,7 +52,47 @@ def start(message: tb.types.Message):
             'last_button_id': 'приветствие'
         }
     )
-    bot.send_message(message.from_user.id, f'Приветствуем тебя, {message.from_user.full_name}!')
+    markup = create_markup_text(message)
+    bot.send_message(message.from_user.id, markup[0], reply_markup=markup[1])
+
+
+@bot.message_handler(content_types=['text'])
+def text(message):
+    #if message.text.split()[-1].isdigit():
+    #    user = models.UserModel.objects.filter(foreign_id=message.from_user.id)
+    #    user.update(stage=int(message.text.split()[-1]))
+    #else:
+    #    user = models.UserModel.objects.filter(foreign_id=message.from_user.id)
+    #    user.update(stage=1)
+    if message.text == 'Выход':
+        markup = tb.types.InlineKeyboardMarkup()
+        button1 = tb.types.InlineKeyboardButton('Продолжить', callback_data='continue')
+        button2 = tb.types.InlineKeyboardButton('Начать заново', callback_data='again')
+        bot.send_message(message.from_user.id, 'Игра остановлена.', reply_markup=tb.types.ReplyKeyboardRemove())
+        markup.add(button1)
+        markup.add(button2)
+        bot.send_message(message.from_user.id, 'Что вы будете делать?', reply_markup=markup)
+    user = models.UserModel.objects.filter(foreign_id=message.from_user.id)
+    to_button = models.ButtonModel.objects.get(from_button_id=user[0].last_button_id, button=message.text).to_button_id
+    user.update(last_button_id=to_button)
+    markup = create_markup_text(message)
+    exit_button = tb.types.KeyboardButton('Выход')
+    markup[1].add(exit_button)
+    bot.send_message(message.from_user.id, markup[0], reply_markup=markup[1])
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback(call):
+    if call.data == 'continue':
+        markup = create_markup_text(call)
+        exit_button = tb.types.KeyboardButton('Выход')
+        markup[1].add(exit_button)
+        bot.send_message(call.from_user.id, markup[0], reply_markup=markup[1])
+    elif call.data == 'again':
+        user = models.UserModel.objects.filter(foreign_id=call.from_user.id)
+        user.update(last_button_id='приветствие')
+        markup = create_markup_text(call)
+        bot.send_message(call.from_user.id, markup[0], reply_markup=markup[1])
 
 
 @bot.message_handler(commands=['auth'])
@@ -94,5 +143,9 @@ def plot(message: tb.types.Message):
 @bot.message_handler(commands=['message'])
 def message(message: tb.types.Message):
     if models.UserModel.objects.get(foreign_id=message.from_user.id).root == True:
-        bot.send_message(message.text.split()[1], message.text.split()[2])
-        bot.send_message(message.from_user.id, f'Сообщение отправлено {message.text.split()[1]}({message.text.split()[1].full_name}):\n\n{message.text.split()[2]}')
+        command = message.text.split()[:2]
+        text = message.text.replace(' '.join(command)+' ', '')
+        bot.send_message(command[1], text)
+        bot.send_message(message.from_user.id, f'Сообщение отправлено пользователю {command[1]}:\n\n{text}')
+    else:
+        bot.send_message(message.from_user.id, 'У вас нет доступа к этой команде')
