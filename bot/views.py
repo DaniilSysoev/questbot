@@ -9,7 +9,7 @@ import httplib2
 
 
 bot = tb.TeleBot(settings.BOT_TOKEN)
-# https://api.telegram.org/bot5813570276:AAHVVgjcZZzmYr0Vrb-X9DXq-WHsrsXqLdo/setWebhook?url=https://933f-176-59-56-123.eu.ngrok.io/bot/
+# https://api.telegram.org/bot5813570276:AAHVVgjcZZzmYr0Vrb-X9DXq-WHsrsXqLdo/setWebhook?url=https://movementquest.miem.tv/bot/
 
 def index(request):
     if request.method == "POST":
